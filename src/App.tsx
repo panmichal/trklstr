@@ -4,113 +4,25 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { Table, Layout, Menu, Breadcrumb, Button } from 'antd';
 import { FileOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { Projects } from './ProjectList';
-import icon from '../assets/icon.svg';
 import './App.global.css';
-import addDirectory from './projects/projects';
+import addDirectory, { readProjectContent } from './projects/projects';
+import { ProjectContent } from './ProjectContent';
 
 const { SubMenu } = Menu;
-const { Header, Content, Footer, Sider } = Layout;
-
-interface State {
-  filesLoaded: boolean;
-  filePaths: Array<string>;
-}
-
-interface FileListProps {
-  fileNames: Array<string>;
-}
-
-const tableColumns = [
-  {
-    title: 'Path',
-    dataIndex: 'path',
-    key: 'path',
-  },
-  {
-    title: 'Length',
-    dataIndex: 'length',
-    key: 'length',
-  },
-];
-
-const FileList = ({ fileNames }: FileListProps) => {
-  const data = fileNames.map((name, index) => ({
-    key: index,
-    path: name,
-    length: 0,
-  }));
-  return <Table columns={tableColumns} dataSource={data} />;
-};
-// const Hello = () => {
-//   const [filePaths, setFilePaths] = useState<Array<string>>([]);
-//   const [filesLoaded, setFilesLoaded] = useState(false);
-
-//   return (
-//     <div>
-//       <div className="Hello">
-//         <img width="200px" alt="icon" src={icon} />
-//       </div>
-//       <h1>electron-react-boilerplate</h1>
-//       <button
-//         type="button"
-//         onClick={() => loadFilesFromDirectory(setFilePaths)}
-//       >
-//         <span role="img" aria-label="books">
-//           📚
-//         </span>
-//         OPEN
-//       </button>
-//       <div>
-//         <Projects />
-//       </div>
-//       <div>
-//         <FileList fileNames={filePaths} />
-//       </div>
-//       <div className="Hello">
-//         <a
-//           href="https://electron-react-boilerplate.js.org/"
-//           target="_blank"
-//           rel="noreferrer"
-//         >
-//           <button type="button">
-//             <span role="img" aria-label="books">
-//               📚
-//             </span>
-//             Read our docs
-//           </button>
-//         </a>
-//         <a
-//           href="https://github.com/sponsors/electron-react-boilerplate"
-//           target="_blank"
-//           rel="noreferrer"
-//         >
-//           <button type="button">
-//             <span role="img" aria-label="books">
-//               🙏
-//             </span>
-//             Donate
-//           </button>
-//         </a>
-//       </div>
-//     </div>
-//   );
-// };
+const { Header, Content, Sider } = Layout;
 
 function addProject(
-  currentProjects: Array<string>,
-  newProject: string
-): Array<string> {
+  currentProjects: Array<ProjectProps>,
+  name: string,
+  path: string
+): Array<ProjectProps> {
+  const newProject = { name, path } as ProjectProps;
   return [...currentProjects, newProject];
 }
 
-const ProjectContent: FunctionComponent<ProjectContentProps> = (
-  props: ProjectContentProps
-) => {
-  return <div>HEJ</div>;
-};
-
 interface ProjectProps {
   name: string;
+  path: string;
 }
 
 interface ProjectContentProps {
@@ -130,14 +42,27 @@ const Project: FunctionComponent<ProjectProps> = ({
 
 const Main = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const [projects, setProjects] = useState<Array<string>>([]);
-  const [
-    currentProject,
-    setCurrentProject,
-  ] = useState<ProjectContentProps | null>(null);
+  const [projects, setProjects] = useState<Array<ProjectProps>>([]);
+  const [currentProject, setCurrentProject] = useState<ProjectContentProps>({
+    versions: [],
+  });
+
+  const selectProjectByKey: (i: string) => void = (i: string) => {
+    const toFind = i.substring(8);
+    const selectedProject = projects.find((project) => project.name === toFind);
+    if (selectedProject !== undefined) {
+      readProjectContent(selectedProject)
+        .then((files) => setCurrentProject({ versions: files }))
+        .catch((e) => setCurrentProject({ versions: [] }));
+    }
+  };
 
   const projectItems = projects.map((project) => (
-    <Project key={`project_${project}`} name={project} />
+    <Project
+      key={`project_${project.name}`}
+      name={project.name}
+      path={project.path}
+    />
   ));
 
   return (
@@ -148,7 +73,7 @@ const Main = () => {
           theme="dark"
           defaultSelectedKeys={['1']}
           mode="inline"
-          onSelect={(i) => console.log(i)}
+          onSelect={(i) => selectProjectByKey(i.key)}
         >
           <SubMenu key="sub1" icon={<UserOutlined />} title="Projects">
             {projectItems}
@@ -167,8 +92,8 @@ const Main = () => {
             size="middle"
             className="add-project-button"
             onClick={() =>
-              addDirectory((newProject) =>
-                setProjects(addProject(projects, newProject))
+              addDirectory((projectName, projectPath) =>
+                setProjects(addProject(projects, projectName, projectPath))
               )
             }
           >
@@ -187,12 +112,9 @@ const Main = () => {
             className="site-layout-background"
             style={{ padding: 24, minHeight: 360 }}
           >
-            Bill is a cat.
+            <ProjectContent versions={currentProject.versions} />
           </div>
         </Content>
-        <Footer style={{ textAlign: 'center' }}>
-          Ant Design ©2018 Created by Ant UED
-        </Footer>
       </Layout>
     </Layout>
   );
