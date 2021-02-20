@@ -1,11 +1,28 @@
 import { remote } from 'electron';
 import { promises as fs } from 'fs';
 
+interface FileInfo {
+  name: string;
+  created: Date;
+}
+
 export function readProjectContent(project: {
   name: string;
   path: string;
-}): Promise<Array<string>> {
-  return fs.readdir(project.path);
+}): Promise<Array<FileInfo>> {
+  return fs.readdir(project.path).then((filePaths) => {
+    const p = filePaths.map((filePath) =>
+      fs
+        .stat(`${project.path}/${filePath}`)
+        .then((stat) => ({ stat, path: filePath }))
+    );
+    return Promise.all(p).then((stats) => {
+      return stats.map((stat) => ({
+        name: stat.path,
+        created: stat.stat.birthtime,
+      }));
+    });
+  });
 }
 
 export default function addDirectory(

@@ -25,8 +25,13 @@ interface ProjectProps {
   path: string;
 }
 
+interface ProjectVersion {
+  name: string;
+  created: Date;
+}
+
 interface ProjectContentProps {
-  versions: Array<string>;
+  versions: Array<ProjectVersion>;
 }
 
 const Project: FunctionComponent<ProjectProps> = ({
@@ -52,7 +57,10 @@ const Main = () => {
     const selectedProject = projects.find((project) => project.name === toFind);
     if (selectedProject !== undefined) {
       readProjectContent(selectedProject)
-        .then((files) => setCurrentProject({ versions: files }))
+        .then((files) =>
+          files.map((file) => ({ name: file.name, created: file.created }))
+        )
+        .then((versions) => setCurrentProject({ versions }))
         .catch((e) => setCurrentProject({ versions: [] }));
     }
   };
@@ -74,17 +82,11 @@ const Main = () => {
           defaultSelectedKeys={['1']}
           mode="inline"
           onSelect={(i) => selectProjectByKey(i.key)}
+          defaultOpenKeys={['sub1']}
         >
           <SubMenu key="sub1" icon={<UserOutlined />} title="Projects">
             {projectItems}
           </SubMenu>
-          <SubMenu key="sub2" icon={<TeamOutlined />} title="Team">
-            <Menu.Item key="6">Team 1</Menu.Item>
-            <Menu.Item key="8">Team 2</Menu.Item>
-          </SubMenu>
-          <Menu.Item key="9" icon={<FileOutlined />}>
-            Files
-          </Menu.Item>
         </Menu>
         <div className="menu-bottom">
           <Button

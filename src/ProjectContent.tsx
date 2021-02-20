@@ -8,14 +8,25 @@ const columns = [
     key: 'version',
   },
   {
+    title: 'Created',
+    dataIndex: 'created',
+    key: 'created',
+    render: (created: Date) => created.toISOString(),
+  },
+  {
     title: 'LUFS',
     dataIndex: 'lufs',
     key: 'lufs',
   },
 ];
 
+interface ProjectVersion {
+  name: string;
+  created: Date;
+}
+
 interface ProjectContentProps {
-  versions: Array<string>;
+  versions: Array<ProjectVersion>;
 }
 
 const ProjectTable: FunctionComponent<ProjectContentProps> = ({
@@ -24,10 +35,12 @@ const ProjectTable: FunctionComponent<ProjectContentProps> = ({
   const data: Array<{
     key: string;
     version: string;
+    created: Date;
     lufs: number;
   }> = versions.map((version) => ({
-    key: version,
-    version,
+    key: version.name,
+    version: version.name,
+    created: version.created,
     lufs: 1.0,
   }));
 
@@ -37,6 +50,7 @@ const ProjectTable: FunctionComponent<ProjectContentProps> = ({
 export const ProjectContent: FunctionComponent<ProjectContentProps> = ({
   versions,
 }: ProjectContentProps) => {
+  console.log(versions);
   return <ProjectTable versions={versions} />;
 };
 export default ProjectContent;
