@@ -11,7 +11,7 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, shell, Menu, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -52,6 +52,20 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
+  let tray = new Tray(path.join(__dirname, '/icon.png'));
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'Quit',
+      click() {
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip('Studioworx');
+  tray.setContextMenu(menu);
+
   if (
     process.env.NODE_ENV === 'development' ||
     process.env.DEBUG_PROD === 'true'
@@ -74,7 +88,7 @@ const createWindow = async () => {
     icon: getAssetPath('icon.png'),
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
+      enableRemoteModule: true,
     },
   });
 
