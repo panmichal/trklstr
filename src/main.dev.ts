@@ -14,6 +14,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, Menu, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import Store from 'electron-store';
 import MenuBuilder from './menu';
 
 export default class AppUpdater {
@@ -24,6 +25,7 @@ export default class AppUpdater {
   }
 }
 
+Store.initRenderer();
 let mainWindow: BrowserWindow | null = null;
 
 if (process.env.NODE_ENV === 'production') {

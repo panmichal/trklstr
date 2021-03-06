@@ -1,15 +1,16 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { FunctionComponent, useState } from 'react';
+import Store from 'electron-store';
+import React, { FunctionComponent, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import { Table, Layout, Menu, Breadcrumb, Button } from 'antd';
-import { FileOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
-import { Projects } from './ProjectList';
+import { Layout, Menu, Breadcrumb, Button } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import './App.global.css';
 import addDirectory, { readProjectContent } from './projects/projects';
 import { ProjectContent } from './ProjectContent';
 
 const { SubMenu } = Menu;
 const { Header, Content, Sider } = Layout;
+const store = new Store();
 
 function addProject(
   currentProjects: Array<ProjectProps>,
@@ -17,7 +18,8 @@ function addProject(
   path: string
 ): Array<ProjectProps> {
   const newProject = { name, path } as ProjectProps;
-  return [...currentProjects, newProject];
+  const projects = [...currentProjects, newProject];
+  return projects;
 }
 
 interface ProjectProps {
@@ -72,6 +74,15 @@ const Main = () => {
       path={project.path}
     />
   ));
+
+  useEffect(() => {
+    const loadedProjects = store.get('projects') as Array<ProjectProps>;
+    setProjects(loadedProjects);
+  }, []);
+
+  useEffect(() => {
+    store.set('projects', projects);
+  }, [projects]);
 
   return (
     <Layout style={{ minHeight: '200vh' }}>
