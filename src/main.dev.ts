@@ -52,19 +52,11 @@ const installExtensions = async () => {
 };
 
 const createWindow = async () => {
-  let tray = new Tray(path.join(__dirname, '/icon.png'));
+  const tray = new Tray(path.join(__dirname, '/icon.png'));
 
-  const menu = Menu.buildFromTemplate([
-    {
-      label: 'Quit',
-      click() {
-        app.quit();
-      },
-    },
-  ]);
-
-  tray.setToolTip('Studioworx');
-  tray.setContextMenu(menu);
+  if (app.dock) {
+    app.dock.hide();
+  }
 
   if (
     process.env.NODE_ENV === 'development' ||
@@ -108,6 +100,11 @@ const createWindow = async () => {
     }
   });
 
+  mainWindow.on('close', (event) => {
+    event.preventDefault();
+    mainWindow?.hide();
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -124,6 +121,24 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: 'Quit',
+      click() {
+        app.quit();
+      },
+    },
+    {
+      label: 'Open app',
+      click() {
+        mainWindow?.show();
+      },
+    },
+  ]);
+
+  tray.setToolTip('Studioworx');
+  tray.setContextMenu(menu);
 };
 
 /**
