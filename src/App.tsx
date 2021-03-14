@@ -28,6 +28,7 @@ interface ProjectProps {
 }
 
 interface ProjectVersion {
+  path: string;
   name: string;
   created: Date;
 }
@@ -60,7 +61,11 @@ const Main = () => {
     if (selectedProject !== undefined) {
       readProjectContent(selectedProject)
         .then((files) =>
-          files.map((file) => ({ name: file.name, created: file.created }))
+          files.map((file) => ({
+            path: file.path,
+            name: file.name,
+            created: file.created,
+          }))
         )
         .then((versions) => setCurrentProject({ versions }))
         .catch((e) => setCurrentProject({ versions: [] }));

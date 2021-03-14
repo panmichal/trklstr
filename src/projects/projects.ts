@@ -2,6 +2,7 @@ import { remote } from 'electron';
 import { promises as fs } from 'fs';
 
 interface FileInfo {
+  path: string;
   name: string;
   created: Date;
 }
@@ -18,6 +19,7 @@ export function readProjectContent(project: {
     );
     return Promise.all(p).then((stats) => {
       return stats.map((stat) => ({
+        path: `${project.path}/${stat.path}`,
         name: stat.path,
         created: stat.stat.birthtime,
       }));
